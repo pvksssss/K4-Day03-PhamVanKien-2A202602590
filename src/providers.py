@@ -66,6 +66,18 @@ class MockOfflineProvider(BaseLLMProvider):
                 "thought": "Lịch hẹn đã được tạo thành công, tôi trả lời kết quả cuối cùng."
             }
 
+        if latest_observation.get("status") == "SUCCESS" and context[-1].get("tool_name") == "exam_schedule_query":
+            exams = latest_observation.get("data", [])
+            schedule_lines = [
+                f"- {exam['course_code']} ({exam['course_name']}): {exam['datetime']}, phòng {exam['room']}, {exam['format']}"
+                for exam in exams
+            ]
+            return {
+                "type": "text",
+                "content": "Lịch thi của sinh viên " + latest_observation.get("student_id", "") + ":\n" + "\n".join(schedule_lines),
+                "thought": "Tôi tổng hợp lịch thi từ Observation mà không bổ sung dữ liệu ngoài tool."
+            }
+
         if latest_observation.get("status") == "SUCCESS" and "data" in latest_observation:
             if "đặt lịch" not in prompt_lower:
                 student = latest_observation["data"]
@@ -101,6 +113,18 @@ class MockOfflineProvider(BaseLLMProvider):
         student_id = student_match.group(0).upper() if student_match else "SV2026001"
         is_multi_step = "rồi" in prompt_lower or "sau đó" in prompt_lower
         is_booking_request = "đặt lịch" in prompt_lower
+
+        if student_match and "lịch thi" in prompt_lower:
+            course_match = re.search(r"\b[A-Z]{2,}\d{3}\b", prompt.upper())
+            arguments = {"student_id": student_id}
+            if course_match:
+                arguments["course_code"] = course_match.group(0)
+            return {
+                "type": "tool_call",
+                "tool_name": "exam_schedule_query",
+                "arguments": arguments,
+                "thought": f"Người dùng yêu cầu lịch thi của {student_id}; tôi sẽ tra cứu lịch thi từ tool."
+            }
         
         # Mô phỏng nhận diện intent gọi Tool
         if student_match and ("tra cứu" in prompt_lower or is_multi_step):

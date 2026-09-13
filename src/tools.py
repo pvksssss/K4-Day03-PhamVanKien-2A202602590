@@ -48,6 +48,24 @@ TOOLS_SCHEMA = [
             },
             "required": ["student_id", "datetime_str", "advisor_name"]
         }
+    },
+    {
+        "name": "exam_schedule_query",
+        "description": "Tra cứu lịch thi của sinh viên VinUni theo mã sinh viên và mã môn học tùy chọn.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "student_id": {
+                    "type": "string",
+                    "description": "Mã sinh viên cần tra cứu lịch thi (ví dụ: 'SV2026001')."
+                },
+                "course_code": {
+                    "type": "string",
+                    "description": "Mã môn học cần tra cứu, bỏ trống để lấy toàn bộ lịch thi."
+                }
+            },
+            "required": ["student_id"]
+        }
     }
 ]
 
@@ -72,6 +90,34 @@ MOCK_DATABASE = {
         "status": "Đang học",
         "advisor": "TS. Lê Thị B"
     }
+}
+
+MOCK_EXAM_SCHEDULE = {
+    "SV2026001": [
+        {
+            "course_code": "AI201",
+            "course_name": "Lập trình Python nâng cao",
+            "datetime": "08:00 20/12/2026",
+            "room": "C304",
+            "format": "Tự luận"
+        },
+        {
+            "course_code": "AI202",
+            "course_name": "Học máy cơ bản",
+            "datetime": "13:30 22/12/2026",
+            "room": "A201",
+            "format": "Trên máy tính"
+        }
+    ],
+    "SV2026002": [
+        {
+            "course_code": "AI201",
+            "course_name": "Lập trình Python nâng cao",
+            "datetime": "08:00 20/12/2026",
+            "room": "C305",
+            "format": "Tự luận"
+        }
+    ]
 }
 
 
@@ -118,10 +164,37 @@ def execute_schedule_appointment(
     }, ensure_ascii=False)
 
 
+def execute_exam_schedule_query(student_id: str, course_code: str = "") -> str:
+    """Tra cứu lịch thi theo sinh viên và tùy chọn lọc theo mã môn học."""
+    normalized_student_id = student_id.strip().upper()
+    exams = MOCK_EXAM_SCHEDULE.get(normalized_student_id)
+    if not exams:
+        return json.dumps({
+            "status": "NOT_FOUND",
+            "message": f"Không tìm thấy lịch thi của sinh viên có mã '{student_id}'"
+        }, ensure_ascii=False)
+
+    if course_code:
+        normalized_course_code = course_code.strip().upper()
+        exams = [exam for exam in exams if exam["course_code"] == normalized_course_code]
+        if not exams:
+            return json.dumps({
+                "status": "NOT_FOUND",
+                "message": f"Không tìm thấy lịch thi môn '{course_code}' của sinh viên {normalized_student_id}"
+            }, ensure_ascii=False)
+
+    return json.dumps({
+        "status": "SUCCESS",
+        "student_id": normalized_student_id,
+        "data": exams
+    }, ensure_ascii=False)
+
+
 # Router gọi tool thực tế
 TOOL_ROUTER = {
     "academic_query": execute_academic_query,
-    "schedule_appointment": execute_schedule_appointment
+    "schedule_appointment": execute_schedule_appointment,
+    "exam_schedule_query": execute_exam_schedule_query
 }
 
 def dispatch_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:

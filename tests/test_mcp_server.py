@@ -46,3 +46,14 @@ class MCPServerTests(unittest.TestCase):
             set(result.get("result", {}).get("missing_fields", [])),
             {"datetime_str", "advisor_name"},
         )
+
+    def test_exam_schedule_query_returns_time_and_room(self):
+        result = MCPAcademicServer().call_tool(
+            "exam_schedule_query", {"student_id": "SV2026001"}
+        )
+
+        self.assertEqual(result.get("result", {}).get("status"), "SUCCESS")
+        first_exam = result.get("result", {}).get("data", [])[0]
+        self.assertEqual(first_exam["course_code"], "AI201")
+        self.assertEqual(first_exam["room"], "C304")
+        self.assertIn("2026", first_exam["datetime"])

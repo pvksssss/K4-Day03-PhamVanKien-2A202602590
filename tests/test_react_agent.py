@@ -11,6 +11,18 @@ from providers import MockOfflineProvider
 
 
 class ReActAgentTests(unittest.TestCase):
+    def test_exam_schedule_request_uses_exam_tool_then_returns_schedule(self):
+        trace = run_react_agent(
+            "Tra cứu lịch thi của sinh viên SV2026001.",
+            MockOfflineProvider(),
+            MCPAcademicServer(),
+        )
+
+        self.assertEqual(trace[0]["tool_name"], "exam_schedule_query")
+        self.assertEqual(trace[-1]["action_type"], "FINAL_ANSWER")
+        self.assertIn("AI201", trace[-1]["output"])
+        self.assertIn("C304", trace[-1]["output"])
+
     def test_multi_step_request_runs_lookup_then_booking_then_final_answer(self):
         trace = run_react_agent(
             "Hãy tra cứu SV2026001 rồi đặt lịch tư vấn lúc 14:00 ngày 15/09/2026.",
