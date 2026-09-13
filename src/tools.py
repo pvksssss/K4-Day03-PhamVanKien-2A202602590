@@ -66,6 +66,24 @@ TOOLS_SCHEMA = [
             },
             "required": ["student_id"]
         }
+    },
+    {
+        "name": "class_schedule_query",
+        "description": "Tra cứu lịch học của sinh viên VinUni theo mã sinh viên và ngày học tùy chọn.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "student_id": {
+                    "type": "string",
+                    "description": "Mã sinh viên cần tra cứu lịch học (ví dụ: 'SV2026001')."
+                },
+                "weekday": {
+                    "type": "string",
+                    "description": "Ngày học cần tra cứu, ví dụ 'Thứ Hai'. Bỏ trống để lấy toàn bộ lịch học."
+                }
+            },
+            "required": ["student_id"]
+        }
     }
 ]
 
@@ -116,6 +134,37 @@ MOCK_EXAM_SCHEDULE = {
             "datetime": "08:00 20/12/2026",
             "room": "C305",
             "format": "Tự luận"
+        }
+    ]
+}
+
+MOCK_CLASS_SCHEDULE = {
+    "SV2026001": [
+        {
+            "course_code": "AI201",
+            "course_name": "Lập trình Python nâng cao",
+            "weekday": "Thứ Hai",
+            "time": "08:00 - 10:00",
+            "room": "D201",
+            "instructor": "TS. Trần Minh"
+        },
+        {
+            "course_code": "AI202",
+            "course_name": "Học máy cơ bản",
+            "weekday": "Thứ Tư",
+            "time": "13:30 - 15:30",
+            "room": "B105",
+            "instructor": "PGS.TS Lê Anh"
+        }
+    ],
+    "SV2026002": [
+        {
+            "course_code": "AI201",
+            "course_name": "Lập trình Python nâng cao",
+            "weekday": "Thứ Hai",
+            "time": "10:15 - 12:15",
+            "room": "D202",
+            "instructor": "TS. Trần Minh"
         }
     ]
 }
@@ -190,11 +239,38 @@ def execute_exam_schedule_query(student_id: str, course_code: str = "") -> str:
     }, ensure_ascii=False)
 
 
+def execute_class_schedule_query(student_id: str, weekday: str = "") -> str:
+    """Tra cứu lịch học theo sinh viên và tùy chọn lọc theo ngày."""
+    normalized_student_id = student_id.strip().upper()
+    classes = MOCK_CLASS_SCHEDULE.get(normalized_student_id)
+    if not classes:
+        return json.dumps({
+            "status": "NOT_FOUND",
+            "message": f"Không tìm thấy lịch học của sinh viên có mã '{student_id}'"
+        }, ensure_ascii=False)
+
+    if weekday:
+        normalized_weekday = weekday.strip().casefold()
+        classes = [item for item in classes if item["weekday"].casefold() == normalized_weekday]
+        if not classes:
+            return json.dumps({
+                "status": "NOT_FOUND",
+                "message": f"Không tìm thấy lịch học ngày '{weekday}' của sinh viên {normalized_student_id}"
+            }, ensure_ascii=False)
+
+    return json.dumps({
+        "status": "SUCCESS",
+        "student_id": normalized_student_id,
+        "data": classes
+    }, ensure_ascii=False)
+
+
 # Router gọi tool thực tế
 TOOL_ROUTER = {
     "academic_query": execute_academic_query,
     "schedule_appointment": execute_schedule_appointment,
-    "exam_schedule_query": execute_exam_schedule_query
+    "exam_schedule_query": execute_exam_schedule_query,
+    "class_schedule_query": execute_class_schedule_query
 }
 
 def dispatch_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:

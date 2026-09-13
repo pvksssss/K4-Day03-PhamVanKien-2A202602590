@@ -78,6 +78,18 @@ class MockOfflineProvider(BaseLLMProvider):
                 "thought": "Tôi tổng hợp lịch thi từ Observation mà không bổ sung dữ liệu ngoài tool."
             }
 
+        if latest_observation.get("status") == "SUCCESS" and context[-1].get("tool_name") == "class_schedule_query":
+            classes = latest_observation.get("data", [])
+            schedule_lines = [
+                f"- {item['weekday']}: {item['course_code']} ({item['course_name']}), {item['time']}, phòng {item['room']}, giảng viên {item['instructor']}"
+                for item in classes
+            ]
+            return {
+                "type": "text",
+                "content": "Lịch học của sinh viên " + latest_observation.get("student_id", "") + ":\n" + "\n".join(schedule_lines),
+                "thought": "Tôi tổng hợp lịch học từ Observation mà không bổ sung dữ liệu ngoài tool."
+            }
+
         if latest_observation.get("status") == "SUCCESS" and "data" in latest_observation:
             if "đặt lịch" not in prompt_lower:
                 student = latest_observation["data"]
@@ -113,6 +125,26 @@ class MockOfflineProvider(BaseLLMProvider):
         student_id = student_match.group(0).upper() if student_match else "SV2026001"
         is_multi_step = "rồi" in prompt_lower or "sau đó" in prompt_lower
         is_booking_request = "đặt lịch" in prompt_lower
+
+        if student_match and "lịch học" in prompt_lower:
+            weekday_mapping = {
+                "thứ hai": "Thứ Hai",
+                "thứ ba": "Thứ Ba",
+                "thứ tư": "Thứ Tư",
+                "thứ năm": "Thứ Năm",
+                "thứ sáu": "Thứ Sáu",
+            }
+            arguments = {"student_id": student_id}
+            for phrase, weekday in weekday_mapping.items():
+                if phrase in prompt_lower:
+                    arguments["weekday"] = weekday
+                    break
+            return {
+                "type": "tool_call",
+                "tool_name": "class_schedule_query",
+                "arguments": arguments,
+                "thought": f"Người dùng yêu cầu lịch học của {student_id}; tôi sẽ tra cứu lịch học từ tool."
+            }
 
         if student_match and "lịch thi" in prompt_lower:
             course_match = re.search(r"\b[A-Z]{2,}\d{3}\b", prompt.upper())

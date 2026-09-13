@@ -57,3 +57,14 @@ class MCPServerTests(unittest.TestCase):
         self.assertEqual(first_exam["course_code"], "AI201")
         self.assertEqual(first_exam["room"], "C304")
         self.assertIn("2026", first_exam["datetime"])
+
+    def test_class_schedule_query_filters_by_weekday(self):
+        result = MCPAcademicServer().call_tool(
+            "class_schedule_query", {"student_id": "SV2026001", "weekday": "Thứ Hai"}
+        )
+
+        self.assertEqual(result.get("result", {}).get("status"), "SUCCESS")
+        first_class = result.get("result", {}).get("data", [])[0]
+        self.assertEqual(first_class["course_code"], "AI201")
+        self.assertEqual(first_class["room"], "D201")
+        self.assertEqual(first_class["weekday"], "Thứ Hai")
