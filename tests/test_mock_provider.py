@@ -1,15 +1,40 @@
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from providers import MockOfflineProvider
+from providers import GeminiProvider, MockOfflineProvider, OpenAIProvider
 from tools import TOOLS_SCHEMA
 
 
 class MockProviderTests(unittest.TestCase):
+    def test_gemini_provider_reads_provider_specific_base_url(self):
+        with patch.dict(
+            "os.environ",
+            {"GEMINI_BASE_URL": "https://gemini-gateway.example/v1", "API_BASE_URL": ""},
+        ):
+            provider = GeminiProvider(api_key="test-key")
+
+        self.assertEqual(
+            getattr(provider, "base_url", None),
+            "https://gemini-gateway.example/v1",
+        )
+
+    def test_openai_provider_falls_back_to_shared_base_url(self):
+        with patch.dict(
+            "os.environ",
+            {"OPENAI_BASE_URL": "", "API_BASE_URL": "https://gateway.example/v1"},
+        ):
+            provider = OpenAIProvider(api_key="test-key")
+
+        self.assertEqual(
+            getattr(provider, "base_url", None),
+            "https://gateway.example/v1",
+        )
+
     def test_booking_request_without_time_or_advisor_asks_for_missing_details(self):
         response = MockOfflineProvider().generate_with_tools(
             "Đặt lịch tư vấn học vụ cho sinh viên SV2026001.",

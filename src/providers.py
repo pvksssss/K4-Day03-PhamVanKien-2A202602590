@@ -150,13 +150,25 @@ class GeminiProvider(BaseLLMProvider):
     def __init__(self, api_key: str = None, model: str = None):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         self.model_name = model or os.getenv("LLM_MODEL") or "gemini-2.5-flash"
+        self.base_url = os.getenv("GEMINI_BASE_URL") or os.getenv("API_BASE_URL") or None
+
+    def _create_client(self):
+        from google import genai
+
+        if not self.base_url:
+            return genai.Client(api_key=self.api_key)
+
+        from google.genai import types
+        return genai.Client(
+            api_key=self.api_key,
+            http_options=types.HttpOptions(base_url=self.base_url),
+        )
 
     def generate(self, prompt: str, system_prompt: str = "") -> str:
         if not self.api_key or self.api_key == "your_gemini_api_key_here":
             return "[Gemini Error]: Chưa cấu hình GEMINI_API_KEY trong file .env! Đang sử dụng chế độ Mock."
         try:
-            from google import genai
-            client = genai.Client(api_key=self.api_key)
+            client = self._create_client()
             contents = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
             response = client.models.generate_content(model=self.model_name, contents=contents)
             return response.text
@@ -175,10 +187,9 @@ class GeminiProvider(BaseLLMProvider):
             return MockOfflineProvider().generate_with_tools(prompt, tools_schema, system_prompt, context)
         
         try:
-            from google import genai
             from google.genai import types
 
-            client = genai.Client(api_key=self.api_key)
+            client = self._create_client()
             
             # Chuẩn hóa function declarations cho Gemini SDK
             function_declarations = []
@@ -235,13 +246,21 @@ class OpenAIProvider(BaseLLMProvider):
     def __init__(self, api_key: str = None, model: str = None):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.model_name = model or os.getenv("LLM_MODEL") or "gpt-4o-mini"
+        self.base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("API_BASE_URL") or None
+
+    def _create_client(self):
+        from openai import OpenAI
+
+        kwargs = {"api_key": self.api_key}
+        if self.base_url:
+            kwargs["base_url"] = self.base_url
+        return OpenAI(**kwargs)
 
     def generate(self, prompt: str, system_prompt: str = "") -> str:
         if not self.api_key or self.api_key == "your_openai_api_key_here":
             return "[OpenAI Error]: Chưa cấu hình OPENAI_API_KEY trong file .env! Đang sử dụng chế độ Mock."
         try:
-            from openai import OpenAI
-            client = OpenAI(api_key=self.api_key)
+            client = self._create_client()
             messages = []
             if system_prompt:
                 messages.append({"role": "system", "content": system_prompt})
@@ -263,8 +282,7 @@ class OpenAIProvider(BaseLLMProvider):
             return MockOfflineProvider().generate_with_tools(prompt, tools_schema, system_prompt, context)
 
         try:
-            from openai import OpenAI
-            client = OpenAI(api_key=self.api_key)
+            client = self._create_client()
 
             tools = []
             for tool in tools_schema:
