@@ -67,6 +67,17 @@ class MockOfflineProvider(BaseLLMProvider):
             }
 
         if latest_observation.get("status") == "SUCCESS" and "data" in latest_observation:
+            if "đặt lịch" not in prompt_lower:
+                student = latest_observation["data"]
+                return {
+                    "type": "text",
+                    "content": (
+                        f"Kết quả tra cứu cho sinh viên {latest_observation.get('student_id', '')} "
+                        f"({student.get('full_name', '')}): Lớp {student.get('class', '')}, "
+                        f"GPA: {student.get('gpa', '')}, Cố vấn: {student.get('advisor', '')}."
+                    ),
+                    "thought": "Yêu cầu chỉ là tra cứu, tôi tổng hợp kết quả từ Observation."
+                }
             advisor = latest_observation["data"].get("advisor", "PGS.TS Nguyễn Văn A")
             student_id = latest_observation.get("student_id", "SV2026001")
             return {

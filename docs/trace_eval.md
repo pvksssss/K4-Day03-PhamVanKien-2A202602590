@@ -2,7 +2,7 @@
 
 > **Họ và Tên Học viên:** [Điền Họ và Tên]  
 > **Mã Sinh Viên / Mã Học viên:** [Điền MSSV]  
-> **Chủ đề Lựa chọn:** [Điền tên chủ đề đã chọn từ docs/DANH_SACH_DE_TAI.md hoặc Đề tài Mở]  
+> **Chủ đề Lựa chọn:** Trợ lý Học vụ & Tra cứu Lịch thi VinUni  
 
 ---
 
@@ -10,11 +10,11 @@
 
 | Tiêu chí Đánh giá | Mức độ (1 - 5) | Giải trình chi tiết lý do chọn điểm |
 | :--- | :---: | :--- |
-| **1. Multi-step Reasoning** | / 5 | Bài toán có yêu cầu chia nhỏ nhiều bước suy luận nối tiếp nhau không? |
-| **2. Tool Interaction** | / 5 | Hệ thống có cần kết nối với MCP Server / Cơ sở dữ liệu bên ngoài không? |
-| **3. Dynamic Decision** | / 5 | Bước tiếp theo có phụ thuộc vào kết quả quan sát bước trước không? |
-| **4. Long Horizon Goal** | / 5 | Hệ thống có phải giữ mục tiêu xuyên suốt qua nhiều lượt xử lý không? |
-| **TỔNG ĐIỂM AGENTIC FIT** | **/ 20** | *Nếu tổng điểm > 12/20: Bài toán rất phù hợp triển khai Agentic System.* |
+| **1. Multi-step Reasoning** | 4 / 5 | Với yêu cầu tra cứu rồi đặt lịch, Agent phải lấy cố vấn từ kết quả tra cứu trước khi thực hiện bước đặt lịch. |
+| **2. Tool Interaction** | 5 / 5 | Hệ thống cần MCP Server để tra cứu hồ sơ học vụ và tạo lịch tư vấn. |
+| **3. Dynamic Decision** | 4 / 5 | Tool tiếp theo và tham số `advisor_name` phụ thuộc vào Observation của `academic_query`. |
+| **4. Long Horizon Goal** | 3 / 5 | Mỗi phiên theo đuổi mục tiêu hỗ trợ học vụ qua tối đa vài bước, chưa có memory dài hạn giữa các phiên. |
+| **TỔNG ĐIỂM AGENTIC FIT** | **16 / 20** | *Bài toán phù hợp triển khai Agentic System vì tổng điểm lớn hơn 12/20.* |
 
 ---
 

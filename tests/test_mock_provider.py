@@ -10,6 +10,30 @@ from tools import TOOLS_SCHEMA
 
 
 class MockProviderTests(unittest.TestCase):
+    def test_lookup_observation_without_booking_request_returns_final_text(self):
+        observation = {
+            "tool_name": "academic_query",
+            "result": {
+                "status": "SUCCESS",
+                "student_id": "SV2026001",
+                "data": {
+                    "full_name": "Nguyễn Văn An",
+                    "class": "AI-K4",
+                    "gpa": 3.85,
+                    "advisor": "PGS.TS Nguyễn Văn A",
+                },
+            },
+        }
+
+        response = MockOfflineProvider().generate_with_tools(
+            "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+            TOOLS_SCHEMA,
+            context=[observation],
+        )
+
+        self.assertEqual(response.get("type"), "text")
+        self.assertIn("Nguyễn Văn An", response.get("content", ""))
+
     def test_lookup_observation_leads_to_booking_with_returned_advisor(self):
         observation = {
             "tool_name": "academic_query",
