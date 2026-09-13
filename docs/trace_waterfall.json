@@ -1,32 +1,43 @@
 [
   {
     "step": 1,
-    "query": "điểm thi của sv2026001",
+    "query": "tra cứu lịch học",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Chào bạn! Để mình có thể tra cứu lịch học giúp bạn, bạn vui lòng cung cấp mã sinh viên (ví dụ: `SV2026001`) giúp mình nhé. Nếu bạn muốn xem lịch học của một ngày cụ thể (ví dụ: Thứ Hai, Thứ Ba...), bạn cũng có thể chia sẻ thêm thông tin này nhé!",
+    "latency_ms": 5310.92
+  },
+  {
+    "step": 1,
+    "query": "sv2026001 thứ 2",
     "action_type": "TOOL_EXECUTION",
-    "tool_name": "academic_query",
+    "tool_name": "class_schedule_query",
     "arguments": {
+      "weekday": "Thứ Hai",
       "student_id": "SV2026001"
     },
     "observation": {
       "status": "SUCCESS",
       "student_id": "SV2026001",
-      "data": {
-        "full_name": "Nguyễn Văn An",
-        "class": "AI-K4",
-        "gpa": 3.85,
-        "email": "an.nv@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "PGS.TS Nguyễn Văn A"
-      }
+      "data": [
+        {
+          "course_code": "AI201",
+          "course_name": "Lập trình Python nâng cao",
+          "weekday": "Thứ Hai",
+          "time": "08:00 - 10:00",
+          "room": "D201",
+          "instructor": "TS. Trần Minh"
+        }
+      ]
     },
-    "latency_ms": 2515.82
+    "latency_ms": 2890.83
   },
   {
     "step": 2,
-    "query": "điểm thi của sv2026001",
+    "query": "sv2026001 thứ 2",
     "action_type": "FINAL_ANSWER",
     "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
-    "output": "Thông tin điểm số và học vụ của sinh viên **SV2026001** như sau:\n\n* **Họ và tên:** Nguyễn Văn An\n* **Lớp:** AI-K4\n* **Trạng thái:** Đang học\n* **Điểm trung bình (GPA):** 3.85 / 4.0\n* **Cố vấn học tập:** PGS.TS Nguyễn Văn A\n* **Email:** an.nv@vinuni.edu.vn",
-    "latency_ms": 3372.48
+    "output": "Chào bạn, dưới đây là lịch học Thứ Hai của sinh viên **SV2026001**:\n\n* **Môn học:** Lập trình Python nâng cao (Mã môn: **AI201**)\n* **Thời gian:** 08:00 - 10:00\n* **Phòng học:** D201\n* **Giảng viên:** TS. Trần Minh",
+    "latency_ms": 3212.71
   }
 ]
