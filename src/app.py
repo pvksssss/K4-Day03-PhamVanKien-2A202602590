@@ -43,12 +43,14 @@ def load_test_cases():
         return json.load(f)
 
 
-def save_waterfall_trace(trace_data: list):
+def save_waterfall_trace(trace_data: list, trace_path=None):
     """Ghi vết log Waterfall Trace Log ra file docs/trace_waterfall.json"""
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    docs_dir = os.path.join(base_dir, "docs")
-    os.makedirs(docs_dir, exist_ok=True)
-    trace_path = os.path.join(docs_dir, "trace_waterfall.json")
+    if trace_path is None:
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        docs_dir = os.path.join(base_dir, "docs")
+        trace_path = os.path.join(docs_dir, "trace_waterfall.json")
+    trace_path = os.fspath(trace_path)
+    os.makedirs(os.path.dirname(trace_path), exist_ok=True)
     with open(trace_path, "w", encoding="utf-8") as f:
         json.dump(trace_data, f, ensure_ascii=False, indent=2)
     print(f"📊 [OBSERVABILITY]: Đã lưu {len(trace_data)} sự kiện Waterfall Trace tại '{trace_path}'!")
@@ -178,17 +180,20 @@ if __name__ == "__main__":
         print("   - Tra cứu học vụ: 'Hãy tra cứu thông tin học vụ của sinh viên SV2026001'")
         print("   - Đặt lịch hẹn: 'Đặt lịch hẹn tư vấn cho SV2026001 vào 14:00 ngày 15/09/2026'")
         print("   - Gõ 'exit' hoặc 'quit' để kết thúc phiên trò chuyện.\n")
-        while True:
-            try:
+        all_logs = []
+        try:
+            while True:
                 user_input = input("👤 Sinh viên hỏi: ").strip()
                 if not user_input or user_input.lower() in ["exit", "quit"]:
                     print("👋 Tạm biệt! Kết thúc phiên trò chuyện.")
                     break
                 logs = run_react_agent(user_input, provider, mcp_server)
-                save_waterfall_trace(logs)
-            except (KeyboardInterrupt, EOFError):
-                print("\n👋 Đã thoát phiên tương tác.")
-                break
+                all_logs.extend(logs)
+        except (KeyboardInterrupt, EOFError):
+            print("\n👋 Đã thoát phiên tương tác.")
+        finally:
+            if all_logs:
+                save_waterfall_trace(all_logs)
     elif "--all" in sys.argv:
         print("🚀 [TEST SUITE MODE] Kiểm tra 5 Test Cases:")
         completed_count = 0
