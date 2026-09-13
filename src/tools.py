@@ -91,8 +91,23 @@ def execute_academic_query(student_id: str) -> str:
         }, ensure_ascii=False)
 
 
-def execute_schedule_appointment(student_id: str, datetime_str: str, advisor_name: str = "PGS.TS Nguyễn Văn A") -> str:
+def execute_schedule_appointment(
+    student_id: str = "", datetime_str: str = "", advisor_name: str = ""
+) -> str:
     """Thực thi đặt lịch hẹn tư vấn học vụ"""
+    fields = {
+        "student_id": student_id,
+        "datetime_str": datetime_str,
+        "advisor_name": advisor_name,
+    }
+    missing_fields = [name for name, value in fields.items() if not str(value).strip()]
+    if missing_fields:
+        return json.dumps({
+            "status": "VALIDATION_ERROR",
+            "missing_fields": missing_fields,
+            "message": "Thiếu thông tin bắt buộc để đặt lịch."
+        }, ensure_ascii=False)
+
     return json.dumps({
         "status": "SUCCESS",
         "booking_id": f"BK-{student_id}-99",

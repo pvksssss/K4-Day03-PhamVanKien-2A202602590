@@ -10,6 +10,17 @@ from tools import TOOLS_SCHEMA
 
 
 class MockProviderTests(unittest.TestCase):
+    def test_booking_request_without_time_or_advisor_asks_for_missing_details(self):
+        response = MockOfflineProvider().generate_with_tools(
+            "Đặt lịch tư vấn học vụ cho sinh viên SV2026001.",
+            TOOLS_SCHEMA,
+        )
+
+        self.assertEqual(response.get("type"), "text")
+        self.assertIn("thời gian", response.get("content", "").lower())
+        self.assertIn("cố vấn", response.get("content", "").lower())
+        self.assertNotIn("thành công", response.get("content", "").lower())
+
     def test_lookup_observation_without_booking_request_returns_final_text(self):
         observation = {
             "tool_name": "academic_query",

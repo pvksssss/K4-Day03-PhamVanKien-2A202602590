@@ -78,6 +78,12 @@ class MockOfflineProvider(BaseLLMProvider):
                     ),
                     "thought": "Yêu cầu chỉ là tra cứu, tôi tổng hợp kết quả từ Observation."
                 }
+            if not re.search(r"\b\d{1,2}:\d{2}\b", prompt):
+                return {
+                    "type": "text",
+                    "content": "Để đặt lịch, vui lòng cung cấp thời gian hẹn cụ thể.",
+                    "thought": "Đã có cố vấn từ Observation nhưng chưa có thời gian hẹn."
+                }
             advisor = latest_observation["data"].get("advisor", "PGS.TS Nguyễn Văn A")
             student_id = latest_observation.get("student_id", "SV2026001")
             return {
@@ -94,6 +100,7 @@ class MockOfflineProvider(BaseLLMProvider):
         student_match = re.search(r"sv\d+", prompt_lower)
         student_id = student_match.group(0).upper() if student_match else "SV2026001"
         is_multi_step = "rồi" in prompt_lower or "sau đó" in prompt_lower
+        is_booking_request = "đặt lịch" in prompt_lower
         
         # Mô phỏng nhận diện intent gọi Tool
         if student_match and ("tra cứu" in prompt_lower or is_multi_step):
@@ -103,7 +110,20 @@ class MockOfflineProvider(BaseLLMProvider):
                 "arguments": {"student_id": student_id},
                 "thought": f"Tôi cần tra cứu hồ sơ của sinh viên {student_id} trước khi xử lý yêu cầu."
             }
-        if student_match and "đặt lịch" in prompt_lower:
+        if is_booking_request:
+            missing_details = []
+            if not student_match:
+                missing_details.append("mã sinh viên")
+            if not re.search(r"\b\d{1,2}:\d{2}\b", prompt):
+                missing_details.append("thời gian hẹn")
+            if not re.search(r"(?:pgs\.?\s*ts\.?|ts\.?)", prompt_lower):
+                missing_details.append("tên cố vấn")
+            if missing_details:
+                return {
+                    "type": "text",
+                    "content": "Để đặt lịch, vui lòng cung cấp " + ", ".join(missing_details) + ".",
+                    "thought": "Yêu cầu đặt lịch chưa đủ thông tin bắt buộc nên cần hỏi lại."
+                }
             return {
                 "type": "tool_call",
                 "tool_name": "schedule_appointment",

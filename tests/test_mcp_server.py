@@ -35,3 +35,14 @@ class MCPServerTests(unittest.TestCase):
             result.get("result", {}).get("data", {}).get("full_name"),
             "Nguyễn Văn An",
         )
+
+    def test_booking_with_missing_fields_returns_validation_error(self):
+        result = MCPAcademicServer().call_tool(
+            "schedule_appointment", {"student_id": "SV2026001"}
+        )
+
+        self.assertEqual(result.get("result", {}).get("status"), "VALIDATION_ERROR")
+        self.assertEqual(
+            set(result.get("result", {}).get("missing_fields", [])),
+            {"datetime_str", "advisor_name"},
+        )
